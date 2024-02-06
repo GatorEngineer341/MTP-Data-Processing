@@ -14,4 +14,6 @@ z_distance = new_data.data(:,1); %Saves the second column of the data to the var
 x_height = x_height*1e6; %Scaling to proper units [um]
 z_distance = z_distance*1e3; %Scaling to proper units [mm]
 
+z_distance = z_distance-abs(z_distance(1)-0); %Shifts trimmed data to zero
+
 end
