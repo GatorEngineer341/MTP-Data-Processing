@@ -8,20 +8,22 @@ clc
 clear 
 close all 
 
+filepath = 'C:\Users\ryana\Dropbox\UTK\Research\MTP Research\Alicona Measurements\ST-15 Testing\Plane Removed\'; %Folder where surface profiles are saved 
+filename = '0.002 IPR 300 SFM 45 DEG VNMG'; %Name of surface profile files in .csv format
+
+% cd (filepath) %Changes to folder where the data set is stored
 
 %% Importing Measured Surface Profile 
-
-
-filepath = 'C:\Users\ryana\Dropbox\UTK\Research\MTP Research\Alicona Measurements\ST-15 Testing\Plane Removed\'; 
-filename = '0.002 IPR 300 SFM 45 DEG VNMG'; 
 
 [x_height,z_distance] = Alicona_surf_import(filename,filepath);
 
 %% Saving the surface profile data 
-% parsed_data = [xnew ynew_detrend]; 
-% savename = 'Taper_45_Deg_300_sfm_002_ipr_20x_1.mat'; %full name of new data file created
-% save(savename,'parsed_data'); %Creates the new file 
 
+%%% Uncomment the line below to save the surface profile to the desired
+%%% folder for use later in comparing the recorded data set with the
+%%% simulation surface
+
+% save_surface(z_distance,x_height,filename,filepath)
 
 %% Coordinate Rotation 
 
@@ -30,17 +32,47 @@ filename = '0.002 IPR 300 SFM 45 DEG VNMG';
 %% Filtering Surface Data
 
 fs = 1/(z_distance(2)-z_distance(1)); 
-x_height_highpass = highpass(x_height,15,fs);
-x_height_lowpass = lowpass(x_height,0.01,fs);
+w_highpass = 10; 
+x_height_highpass = highpass(x_height,w_highpass,fs);
+
+x_height_waviness = x_height-x_height_highpass; 
+
+w_lowpass = 0.1;
+x_height_lowpass = lowpass(x_height,w_lowpass,fs,Steepness=0.999);
+
+lambdac = 0.1; % cutoff in mm
+dx = z_distance(2)-z_distance(1); % spacing in mm
+[x,w4] = npspline(x_height, dx, lambdac); % generate spline % waviness profile
+
+x_surface_rough = w4 - x_height;
 
 
 %% Plotting the Surface Profile 
+
+tiledlayout(3,1)
+ax1 = nexttile;
+plot(z_distance, x_height,'b'); 
+title('Profile')
+ax2 = nexttile;
+plot(z_distance, w4,'k');
+% plot(z_distance, x_height_waviness,'k');
+title('Waviness')
+ax3 = nexttile;
+plot(z_distance, x_surface_rough,'r');
+% plot(z_distance, x_height_highpass,'r');
+title('Roughness')
+xlabel('Distance [mm]'); 
+ylabel('Height [\mum]'); 
+linkaxes([ax1 ax2 ax3],'xy')
+
+
+figure
 % plot(z_distance_offset_1, detrend(x_height_offset_1),'b'); 
-plot(z_distance, x_height_offset_detrend,'b'); 
+plot(z_distance, x_height,'b'); 
 hold on 
 % plot(z_distance_offset_1, x_height_fitted,'k');
-plot(z_distance, x_height_highpass,'r');
-% plot(z_distance_offset_1, x_height_lowpass,'g');
+% plot(z_distance, x_height_highpass,'r');
+plot(z_distance, x_height_lowpass,'k');
 % plot(xnew,ynew, 'r')
 % plot(curve_fit_x, curve_fit_y); 
 hold on
@@ -51,19 +83,38 @@ ylabel('Height [\mum]');
 % legend('Raw data', 'Linear fit')
 % legend('Raw data', 'Linear fit', 'Detrended data')
 
-
+figure
+plot(z_distance, x_height_lowpass,'k');
 %% Calculating FFT of Surface profile 
 
+[wavelength_uf,amplitude_uf] = surface_fft(z_distance,x_height);
+figure
+plot(wavelength_uf,amplitude_uf); % plot half of the % FFT array
+xlabel('Wavelength (mm)');
+ylabel('Scaled amplitude (\mum)');
 [f_uf,P1_uf] = execute_fft(z_distance,x_height); 
 
-plot_fft_surface(f_uf,P1_uf,'Unfiltered Surface FFT',[0 100])
+% plot_fft_surface(f_uf,P1_uf,'Unfiltered Surface FFT',[0 100])
 
-%% Calculating FFT of Filtered Surface 
+%% Calculating FFT of Filtered Surface Highpass filter 
 
-[f_f,P1_f] = execute_fft(z_distance,x_height_highpass); 
+[wavelength_f,amplitude_f] = surface_fft(z_distance,x_surface_rough);
+figure
+plot(wavelength_f,amplitude_f); % plot half of the % FFT array
+xlabel('Wavelength (mm)');
+ylabel('Scaled amplitude (\mum)');
 
-plot_fft_surface(f_f,P1_f,'Filtered Surface FFT',[0 100])
+[f_hf,P1_hf] = execute_fft(z_distance,x_height_highpass); 
 
+plot_fft_surface(f_hf,P1_hf,'Filtered Surface FFT Highpass',[0 100])
+
+%% Calculating FFT of Filtered Surface Lowpass filter
+
+[f_lf,P1_lf] = execute_fft(z_distance,x_height_lowpass); 
+
+plot_fft_surface(f_lf,P1_lf,'Filtered Surface FFT Lowpass',[0 100])
+
+% cd(current_folder)
 
 
 
