@@ -8,8 +8,8 @@ cd(filepath)
 
 savename = strcat(savename,'.mat');
 
-parsed_data = [x y]; 
-save(savename,'parsed_data'); %Creates the new file 
+data = [x y]; 
+save(savename,'data'); %Creates the new file 
 
 cd(current_folder)
 

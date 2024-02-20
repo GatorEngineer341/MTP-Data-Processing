@@ -1,15 +1,11 @@
-% css_taper_surface_r1.m
-% T. Schmitz
-% 2/17/24
-% Constant surface speed for taper turning (linear interpolation)
-tic 
+function [Ra_sim] = css_taper_surface(nr_fit)
+%Constant surface speed simulation written as a function
+%   Need to include nr_fit [in], theta [deg], fr [in/rev]
 
-clear
-close all
-clc
+f_r = 0.002;
 
 % Define turning parameters
-fr = (0.002*25.4)*1e-3;            % feed per revolution in path direction, m/rev
+fr = (f_r*25.4)*1e-3;            % feed per revolution in path direction, m/rev
 theta = 45;             % taper angle, deg
 theta = theta*pi/180;   % taper angle, rad
 frz = fr*cos(theta);    % feed per revolution in z direction, m/rev
@@ -205,7 +201,7 @@ end
 plot(t_test*1e3, n_test*1e3, 'go')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-nr_fit = (0.035938*25.4)*1e-3;          % fit value for tool nose radius from constant feed test, m
+nr_fit = (nr_fit*25.4)*1e-3;          % fit value for tool nose radius from constant feed test, m
 nr = zeros(1, num_rev);     % tool nose radius for each revolution, m
 nr = nr + nr_fit;
 
@@ -271,9 +267,4 @@ x_height_sim = n_final*1e6;
 sim_avg = mean(x_height_sim); 
 Ra_sim = mean(abs(sim_avg-x_height_sim));
 
-%% Saving data set for comparison with measured surface profiles 
-savename = '0.002 IPR 300 SFM 0.019 nr 45 DEG Taper'; 
-filepath = 'C:\Users\ryana\Dropbox\UTK\Research\MTP Research\Simulation Results\45 Deg Taper'; 
-save_surface(t_interp'*1e3,n_final'*1e6,savename,filepath)
-
-toc
+end

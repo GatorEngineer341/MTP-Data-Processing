@@ -9,7 +9,7 @@ clear
 close all 
 
 filepath = 'C:\Users\ryana\Dropbox\UTK\Research\MTP Research\Alicona Measurements\ST-15 Testing\Plane Removed\'; %Folder where surface profiles are saved 
-filename = '0.001 IPR 300 SFM 45 DEG VNMG TEST 2'; %Name of surface profile files in .csv format
+filename = '0.002 IPR 300 SFM 45 DEG VNMG'; %Name of surface profile files in .csv format
 
 % cd (filepath) %Changes to folder where the data set is stored
 
@@ -17,13 +17,6 @@ filename = '0.001 IPR 300 SFM 45 DEG VNMG TEST 2'; %Name of surface profile file
 
 [x_height,z_distance] = Alicona_surf_import(filename,filepath);
 
-%% Saving the surface profile data 
-
-%%% Uncomment the line below to save the surface profile to the desired
-%%% folder for use later in comparing the recorded data set with the
-%%% simulation surface
-
-% save_surface(z_distance,x_height,filename,filepath)
 
 %% Coordinate Rotation 
 
@@ -31,16 +24,16 @@ filename = '0.001 IPR 300 SFM 45 DEG VNMG TEST 2'; %Name of surface profile file
 
 %% Filtering Surface Data
 
-fs = 1/(z_distance(2)-z_distance(1)); 
-w_highpass = 10; 
-x_height_highpass = highpass(x_height,w_highpass,fs);
+% fs = 1/(z_distance(2)-z_distance(1)); 
+% w_highpass = 10; 
+% x_height_highpass = highpass(x_height,w_highpass,fs);
+% 
+% x_height_waviness = x_height-x_height_highpass; 
+% 
+% w_lowpass = 0.1;
+% x_height_lowpass = lowpass(x_height,w_lowpass,fs,Steepness=0.999);
 
-x_height_waviness = x_height-x_height_highpass; 
-
-w_lowpass = 0.1;
-x_height_lowpass = lowpass(x_height,w_lowpass,fs,Steepness=0.999);
-
-lambdac = 0.05; % cutoff in mm
+lambdac = 0.15; % cutoff in mm
 dx = z_distance(2)-z_distance(1); % spacing in mm
 [x,w4] = npspline(x_height, dx, lambdac); % generate spline waviness profile
 
@@ -121,6 +114,15 @@ plot_fft_wavelength(wavelength_f,amplitude_f,'Roughness', [0 1.5], [0 0.35],'r')
 % [f_hf,P1_hf] = execute_fft(z_distance,x_height_highpass); 
 % 
 % plot_fft_surface(f_hf,P1_hf,'Filtered Surface FFT Highpass',[0 100])
+
+
+%% Saving the surface profile data 
+
+%%% Uncomment the line below to save the surface profile to the desired
+%%% folder for use later in comparing the recorded data set with the
+%%% simulation surface
+
+save_surface(z_distance,x_surface_rough,filename,filepath)
 
 %% Calculating FFT of Filtered Surface Lowpass filter
 % 
